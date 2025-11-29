@@ -11,6 +11,9 @@
         };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
         /* Dark mode is handled via Tailwind's .dark classes; no global invert filter to keep text readable */
     </style>
@@ -120,43 +123,19 @@
         let currentUsername = '';
         let myQuotesOnly = false;
 
-        // Simple storage shim for GitHub Pages / plain browsers using localStorage
-        (function initializeStorageShim() {
-            if (window.storage) return;
+        // Initialize Firebase app and Firestore (shared quotes for all users)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6EL6Zjz_d-9qFVcYpQ3k8SH2MN-elJDc",
+            authDomain: "marcus-quotes.firebaseapp.com",
+            projectId: "marcus-quotes",
+            storageBucket: "marcus-quotes.firebasestorage.app",
+            messagingSenderId: "766599799230",
+            appId: "1:766599799230:web:25338064efeaf7a07759ef",
+            measurementId: "G-HH4JRTTQSE"
+        };
 
-            const STORAGE_PREFIX = 'quote-db:';
-
-            window.storage = {
-                async set(key, value) {
-                    try {
-                        localStorage.setItem(STORAGE_PREFIX + key, value);
-                    } catch (e) {
-                        console.error('Failed to write to localStorage', e);
-                        throw e;
-                    }
-                },
-                async get(key) {
-                    const fullKey = STORAGE_PREFIX + key;
-                    const value = localStorage.getItem(fullKey);
-                    if (value === null || value === undefined) {
-                        return null;
-                    }
-                    return { value: value };
-                },
-                async list(prefix) {
-                    const effectivePrefix = STORAGE_PREFIX + (prefix || '');
-                    const keys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (k && k.startsWith(effectivePrefix)) {
-                            // Strip storage prefix before returning
-                            keys.push(k.substring(STORAGE_PREFIX.length));
-                        }
-                    }
-                    return { keys: keys };
-                }
-            };
-        })();
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         document.addEventListener('DOMContentLoaded', function() {
             try {
@@ -374,7 +353,6 @@
             }
 
             var newQuote = {
-                id: 'quote:' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
                 username: username,
                 quote: quote,
                 context: context,
@@ -384,12 +362,14 @@
             };
 
             try {
-                await window.storage.set(newQuote.id, JSON.stringify(newQuote), true);
+                var docRef = await db.collection('quotes').add(newQuote);
+                newQuote.id = docRef.id;
                 quotes.unshift(newQuote);
                 renderQuotes();
                 clearForm();
                 toggleForm();
             } catch (err) {
+                console.error('Failed to save quote to Firestore', err);
                 showError('Failed to save quote. Please try again.');
             }
         }
@@ -401,27 +381,23 @@
                     loadingEl.classList.remove('hidden');
                 }
 
-                var keys = await window.storage.list('quote:', true);
-
-                if (keys && keys.keys) {
-                    var loadedQuotes = [];
-                    for (var i = 0; i < keys.keys.length; i++) {
-                        var key = keys.keys[i];
-                        try {
-                            var result = await window.storage.get(key, true);
-                            if (result && result.value) {
-                                loadedQuotes.push(JSON.parse(result.value));
-                            }
-                        } catch (err) {
-                            console.log('Quote not found:', key);
-                        }
+                var snapshot = await db.collection('quotes').get();
+                var loadedQuotes = [];
+                snapshot.forEach(function(doc) {
+                    var data = doc.data() || {};
+                    data.id = doc.id;
+                    // Ensure timestamp exists and is a number for sorting
+                    if (typeof data.timestamp !== 'number') {
+                        data.timestamp = 0;
                     }
-                    quotes = loadedQuotes.sort(function(a, b) {
-                        return b.timestamp - a.timestamp;
-                    });
-                }
+                    loadedQuotes.push(data);
+                });
+
+                quotes = loadedQuotes.sort(function(a, b) {
+                    return b.timestamp - a.timestamp;
+                });
             } catch (err) {
-                console.error('Error loading quotes:', err);
+                console.error('Error loading quotes from Firestore:', err);
             } finally {
                 var loadingElFinal = document.getElementById('loadingState');
                 if (loadingElFinal) {
@@ -570,19 +546,9 @@
                 return;
             }
             try {
-                if (typeof window.storage.remove === 'function') {
-                    await window.storage.remove(id, true);
-                } else {
-                    const storageKey = id;
-                    const STORAGE_PREFIX = 'quote-db:';
-                    try {
-                        localStorage.removeItem(STORAGE_PREFIX + storageKey);
-                    } catch (e) {
-                        console.error('Failed to remove from localStorage', e);
-                    }
-                }
+                await db.collection('quotes').doc(id).delete();
             } catch (e) {
-                console.error('Failed to delete quote from storage', e);
+                console.error('Failed to delete quote from Firestore', e);
             }
             quotes = quotes.filter(function(q) { return q.id !== id; });
             renderQuotes();
