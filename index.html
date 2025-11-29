@@ -3,58 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community Quote Database</title>
+    <title> Marcus the Worm Database</title>
+    <script>
+        window.tailwind = window.tailwind || {};
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-    <div class="max-w-4xl mx-auto p-6">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Community Quotes</h1>
-            <p class="text-gray-600">Share and discover inspiring quotes from Marcus!</p>
-        </div>
+    <style>
+        /* Global dark-mode effect: invert colors for a striking contrast */
+        html.dark {
+            filter: invert(1) hue-rotate(180deg);
+        }
 
+        /* Avoid inverting media twice if you add any later */
+        html.dark img,
+        html.dark video {
+            filter: invert(1) hue-rotate(180deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-rose-50 via-white to-indigo-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="mb-8 flex items-start justify-between gap-4">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">Marcus' Quotes</h1>
+                <p class="text-gray-600 dark:text-gray-300">Share and discover inspiring quotes from Marcus!</p>
+            </div>
+            <button id="themeToggleBtn" class="inline-flex items-center px-3 py-2 text-xs font-medium rounded-full border border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 transition">
+                <span id="themeToggleLabel">Dark</span>
+            </button>
+        </div>
         <div id="corner1" class="fixed bottom-0 left-0 w-6 h-6 opacity-0 cursor-default select-none"></div>
 
         <div class="mb-6 flex justify-center space-x-3">
-            <button id="toggleFormBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg">
+            <button id="toggleFormBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg dark:bg-indigo-500 dark:hover:bg-indigo-400">
                 Add Quote
             </button>
         </div>
 
-        <div id="addForm" class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200 hidden">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Submit a Quote</h2>
-            <div id="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 hidden">
+        <div id="addForm" class="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-slate-700 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Submit a Quote</h2>
+            <div id="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 hidden dark:bg-red-900/40 dark:border-red-700 dark:text-red-100">
                 <span id="errorText"></span>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                    <input id="usernameInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Name or handle">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Your name</label>
+                    <input id="usernameInput" class="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100" placeholder="Name or handle">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                         Quote <span class="text-red-500">*</span>
                     </label>
-                    <textarea id="quoteInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3" placeholder="Enter the quote..." required></textarea>
+                    <textarea id="quoteInput" class="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100" rows="3" placeholder="Enter the quote..." required></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Context</label>
-                    <textarea id="contextInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="2" placeholder="Who said it? When? Where?"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Context</label>
+                    <textarea id="contextInput" class="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100" rows="2" placeholder="Who said it? When? Where?"></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Origin (URL)</label>
-                    <input type="url" id="originInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="https://example.com/source">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Origin (URL)</label>
+                    <input type="url" id="originInput" class="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100" placeholder="https://example.com/source">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Extra Information</label>
-                    <textarea id="extraInfoInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3" placeholder="Additional notes, analysis, or context..."></textarea>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Extra Information</label>
+                    <textarea id="extraInfoInput" class="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100" rows="3" placeholder="Additional notes, analysis, or context..."></textarea>
                 </div>
 
-                <button id="submitBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium">
+                <button id="submitBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium dark:bg-indigo-500 dark:hover:bg-indigo-400">
                     Submit Quote
                 </button>
             </div>
@@ -62,31 +84,37 @@
 
         <div class="mb-6 space-y-3">
             <div class="relative">
-                <input type="text" id="searchInput" placeholder="Search quotes..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm">
+                <input type="text" id="searchInput" placeholder="Search quotes..." class="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100 shadow-sm">
             </div>
-            <div class="flex items-center justify-between text-sm text-gray-600">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
                 <div class="flex items-center space-x-2">
                     <label for="sortSelect" class="font-medium">Sort by</label>
-                    <select id="sortSelect" class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white">
+                    <select id="sortSelect" class="px-2 py-1 border border-gray-300 dark:border-slate-700 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-900 dark:text-gray-100">
                         <option value="newest">Newest first</option>
                         <option value="oldest">Oldest first</option>
                     </select>
                 </div>
-                <button id="randomQuoteBtn" class="px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100">
-                    Random quote
-                </button>
+                <div class="flex items-center justify-between gap-3 sm:justify-end">
+                    <label class="inline-flex items-center space-x-2 cursor-pointer select-none">
+                        <input id="myQuotesToggle" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-xs sm:text-sm">My quotes only</span>
+                    </label>
+                    <button id="randomQuoteBtn" class="px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 dark:bg-slate-800 dark:text-indigo-200 dark:border-slate-600 dark:hover:bg-slate-700">
+                        Random quote
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div id="loadingState" class="text-center py-12 text-gray-500">Loading quotes...</div>
+        <div id="loadingState" class="text-center py-12 text-gray-500 dark:text-gray-400">Loading quotes...</div>
 
         <div id="quotesList" class="space-y-4 hidden"></div>
 
-        <div id="emptyState" class="text-center py-12 text-gray-500 hidden">
+        <div id="emptyState" class="text-center py-12 text-gray-500 dark:text-gray-400 hidden">
             No quotes yet. Be the first to add one!
         </div>
 
-        <div class="mt-8 text-center text-sm text-gray-500">
+        <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
             <p>All quotes are publicly visible and stored using shared storage.</p>
             <p class="mt-1">Inappropriate content will be rejected automatically.</p>
         </div>
@@ -97,6 +125,9 @@
         let selectedQuoteId = null;
         let isAdmin = false;
         let currentSort = 'newest';
+        let currentTheme = 'light';
+        let currentUsername = '';
+        let myQuotesOnly = false;
 
         // Simple storage shim for GitHub Pages / plain browsers using localStorage
         (function initializeStorageShim() {
@@ -138,6 +169,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             try {
+                // Restore saved username
                 var savedUsername = null;
                 try {
                     savedUsername = localStorage.getItem('quote-db:username');
@@ -149,9 +181,23 @@
                     if (usernameInput) {
                         usernameInput.value = savedUsername;
                     }
+                    currentUsername = savedUsername;
+                }
+
+                // Restore theme preference
+                var savedTheme = null;
+                try {
+                    savedTheme = localStorage.getItem('quote-db:theme');
+                } catch (e) {
+                    console.warn('Could not read saved theme', e);
+                }
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    applyTheme(savedTheme);
+                } else {
+                    applyTheme('light');
                 }
             } catch (e) {
-                console.error('Error restoring username', e);
+                console.error('Error during initial restore', e);
             }
 
             loadQuotes();
@@ -160,6 +206,7 @@
 
         function setupEventListeners() {
             document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
+
             document.getElementById('submitBtn').addEventListener('click', handleSubmit);
             document.getElementById('searchInput').addEventListener('input', renderQuotes);
             document.getElementById('sortSelect').addEventListener('change', function(e) {
@@ -167,11 +214,44 @@
                 renderQuotes();
             });
             document.getElementById('randomQuoteBtn').addEventListener('click', scrollToRandomQuote);
+            var myQuotesToggle = document.getElementById('myQuotesToggle');
+            if (myQuotesToggle) {
+                myQuotesToggle.addEventListener('change', function(e) {
+                    myQuotesOnly = e.target.checked;
+                    renderQuotes();
+                });
+            }
+
+            var themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleTheme);
+            }
 
             var corner1 = document.getElementById('corner1');
             if (corner1) {
                 corner1.addEventListener('click', enterAdminMode);
             }
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            var root = document.documentElement;
+            if (currentTheme === 'dark') {
+                root.classList.add('dark');
+            } else {
+                root.classList.remove('dark');
+            }
+            try {
+                localStorage.setItem('quote-db:theme', currentTheme);
+            } catch (e) {}
+            var label = document.getElementById('themeToggleLabel');
+            if (label) {
+                label.textContent = currentTheme === 'dark' ? 'Light' : 'Dark';
+            }
+        }
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
         }
 
         function toggleForm() {
@@ -299,6 +379,7 @@
                 } catch (e) {
                     console.warn('Failed to persist username', e);
                 }
+                currentUsername = username;
             }
 
             var newQuote = {
@@ -370,6 +451,13 @@
                        userText.includes(searchTerm);
             });
 
+            if (myQuotesOnly && currentUsername) {
+                var me = currentUsername.toLowerCase();
+                filteredQuotes = filteredQuotes.filter(function(q) {
+                    return (q.username || '').toLowerCase() === me;
+                });
+            }
+
             var sortedQuotes = filteredQuotes.slice().sort(function(a, b) {
                 if (currentSort === 'oldest') {
                     return a.timestamp - b.timestamp;
@@ -393,7 +481,8 @@
 
             sortedQuotes.forEach(function(q) {
                 var quoteCard = document.createElement('div');
-                quoteCard.className = 'bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition border border-gray-200';
+                quoteCard.className = 'quote-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-xl transition border border-gray-200/80 shadow-gray-100 dark:shadow-black/40 dark:border-slate-700';
+
                 quoteCard.id = 'quote-' + q.id;
                 quoteCard.onclick = function() {
                     toggleQuoteDetails(q.id);
@@ -401,35 +490,35 @@
 
                 var isExpanded = selectedQuoteId === q.id;
 
-                var html = '<div class="text-lg text-gray-800 font-medium mb-2">"' + escapeHtml(q.quote) + '"</div>';
+                var html = '<div class="text-lg text-gray-800 dark:text-gray-50 font-semibold mb-2 italic">"' + escapeHtml(q.quote) + '"</div>';
 
                 if (q.context) {
-                    html += '<div class="text-sm text-gray-600 mb-1">— ' + escapeHtml(q.context) + '</div>';
+                    html += '<div class="text-sm text-gray-600 dark:text-gray-300 mb-1">— ' + escapeHtml(q.context) + '</div>';
                 }
 
                 if (q.username) {
-                    html += '<div class="text-xs text-gray-500 mb-2">Added by ' + escapeHtml(q.username) + '</div>';
+                    html += '<div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Added by ' + escapeHtml(q.username) + '</div>';
                 }
 
                 if (isExpanded) {
                     html += '<div class="mt-4 pt-4 border-t border-gray-200 space-y-3">';
                     
                     if (q.extraInfo) {
-                        html += '<div><div class="text-xs font-semibold text-gray-500 uppercase mb-1">Extra Information</div>';
-                        html += '<div class="text-sm text-gray-700">' + escapeHtml(q.extraInfo) + '</div></div>';
+                        html += '<div><div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Extra Information</div>';
+                        html += '<div class="text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(q.extraInfo) + '</div></div>';
                     }
                     
                     if (q.origin) {
-                        html += '<div><div class="text-xs font-semibold text-gray-500 uppercase mb-1">Origin</div>';
+                        html += '<div><div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Origin</div>';
                         html += '<a href="' + escapeHtml(q.origin) + '" target="_blank" rel="noopener noreferrer" ';
-                        html += 'class="text-sm text-indigo-600 hover:text-indigo-800" onclick="event.stopPropagation()">';
+                        html += 'class="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200" onclick="event.stopPropagation()">';
                         html += escapeHtml(q.origin) + '</a></div>';
                     }
                     
                     html += '</div>';
                 }
 
-                html += '<div class="text-xs text-gray-400 mt-3">' + new Date(q.timestamp).toLocaleDateString() + '</div>';
+                html += '<div class="text-xs text-gray-400 dark:text-gray-500 mt-3">' + new Date(q.timestamp).toLocaleDateString() + '</div>';
 
                 quoteCard.innerHTML = html;
 
