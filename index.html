@@ -10,12 +10,15 @@
     <div class="max-w-4xl mx-auto p-6">
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">Community Quotes</h1>
-            <p class="text-gray-600">Share and discover inspiring quotes from around the web</p>
+            <p class="text-gray-600">Share and discover inspiring quotes from Marcus!</p>
         </div>
 
-        <div class="mb-6 flex justify-center">
+        <div class="mb-6 flex justify-center space-x-3">
             <button id="toggleFormBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg">
                 Add Quote
+            </button>
+            <button id="adminBtn" class="text-xs px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition">
+                Admin
             </button>
         </div>
 
@@ -26,6 +29,10 @@
             </div>
             
             <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+                    <input id="usernameInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Name or handle">
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Quote <span class="text-red-500">*</span>
@@ -77,6 +84,7 @@
     <script>
         let quotes = [];
         let selectedQuoteId = null;
+        let isAdmin = false;
 
         // Simple storage shim for GitHub Pages / plain browsers using localStorage
         (function initializeStorageShim() {
@@ -125,6 +133,7 @@
             document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
             document.getElementById('submitBtn').addEventListener('click', handleSubmit);
             document.getElementById('searchInput').addEventListener('input', renderQuotes);
+            document.getElementById('adminBtn').addEventListener('click', enterAdminMode);
         }
 
         function toggleForm() {
@@ -142,6 +151,7 @@
         }
 
         function clearForm() {
+            document.getElementById('usernameInput').value = '';
             document.getElementById('quoteInput').value = '';
             document.getElementById('contextInput').value = '';
             document.getElementById('originInput').value = '';
@@ -158,16 +168,50 @@
             document.getElementById('errorMessage').classList.add('hidden');
         }
 
+        function normalizeForFiltering(text) {
+            if (!text) return '';
+            let t = text.toLowerCase();
+            t = t.replace(/[\s._-]+/g, '');
+            const map = {
+                '1': 'i',
+                '!': 'i',
+                '3': 'e',
+                '4': 'a',
+                '@': 'a',
+                '0': 'o',
+                '5': 's',
+                '7': 't'
+            };
+            t = t.replace(/[1!34@05t]/g, function(ch) {
+                return map[ch] || ch;
+            });
+            return t;
+        }
+
         function containsInappropriateContent(text) {
+            if (!text) return false;
+
             const inappropriatePatterns = [
                 /\b(fuck|shit|ass|bitch|damn|hell|crap|piss|cock|dick|pussy|cunt|bastard|whore|slut)\b/i,
                 /\b(kill yourself|kys|suicide|die)\b/i,
                 /\b(n[i1]gg[ae]r|f[a4]gg[o0]t|r[e3]t[a4]rd)\b/i,
                 /(xxx|porn|sex|nude)/i
             ];
-            
-            return inappropriatePatterns.some(function(pattern) {
-                return pattern.test(text);
+
+            const normalized = normalizeForFiltering(text);
+            const normalizedPatterns = [
+                /(fuck|shit|ass|bitch|crap|piss|cock|dick|pussy|cunt|bastard|whore|slut)/i,
+                /(killyourself|kys|suicide|die)/i,
+                /(nigger|faggot|retard)/i,
+                /(xxx|porn|sex|nude)/i
+            ];
+
+            if (inappropriatePatterns.some(function(pattern) { return pattern.test(text); })) {
+                return true;
+            }
+
+            return normalizedPatterns.some(function(pattern) {
+                return pattern.test(normalized);
             });
         }
 
@@ -184,6 +228,7 @@
         async function handleSubmit() {
             hideError();
             
+            var username = document.getElementById('usernameInput').value.trim();
             var quote = document.getElementById('quoteInput').value.trim();
             var context = document.getElementById('contextInput').value.trim();
             var origin = document.getElementById('originInput').value.trim();
@@ -194,7 +239,7 @@
                 return;
             }
 
-            var textToCheck = quote + ' ' + context + ' ' + extraInfo;
+            var textToCheck = [username, quote, context, extraInfo].join(' ');
             if (containsInappropriateContent(textToCheck)) {
                 showError('Your submission contains inappropriate content. Please revise and try again.');
                 return;
@@ -205,8 +250,17 @@
                 return;
             }
 
+            if (username) {
+                try {
+                    localStorage.setItem('quote-db:username', username);
+                } catch (e) {
+                    console.warn('Failed to persist username', e);
+                }
+            }
+
             var newQuote = {
                 id: 'quote:' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                username: username,
                 quote: quote,
                 context: context,
                 origin: origin,
@@ -225,41 +279,15 @@
             }
         }
 
-        async function loadQuotes() {
-            try {
-                document.getElementById('loadingState').classList.remove('hidden');
-                var keys = await window.storage.list('quote:', true);
-                
-                if (keys && keys.keys) {
-                    var loadedQuotes = [];
-                    for (var i = 0; i < keys.keys.length; i++) {
-                        var key = keys.keys[i];
-                        try {
-                            var result = await window.storage.get(key, true);
-                            if (result) {
-                                loadedQuotes.push(JSON.parse(result.value));
-                            }
-                        } catch (err) {
-                            console.log('Quote not found:', key);
-                        }
-                    }
-                    quotes = loadedQuotes.sort(function(a, b) {
-                        return b.timestamp - a.timestamp;
-                    });
-                }
-            } catch (err) {
-                console.error('Error loading quotes:', err);
-            } finally {
-                document.getElementById('loadingState').classList.add('hidden');
-                renderQuotes();
-            }
-        }
-
         function renderQuotes() {
             var searchTerm = document.getElementById('searchInput').value.toLowerCase();
             var filteredQuotes = quotes.filter(function(q) {
-                return q.quote.toLowerCase().includes(searchTerm) ||
-                       q.context.toLowerCase().includes(searchTerm);
+                var quoteText = (q.quote || '').toLowerCase();
+                var contextText = (q.context || '').toLowerCase();
+                var userText = (q.username || '').toLowerCase();
+                return quoteText.includes(searchTerm) ||
+                       contextText.includes(searchTerm) ||
+                       userText.includes(searchTerm);
             });
 
             var quotesList = document.getElementById('quotesList');
@@ -288,7 +316,11 @@
                 var html = '<div class="text-lg text-gray-800 font-medium mb-2">"' + escapeHtml(q.quote) + '"</div>';
 
                 if (q.context) {
-                    html += '<div class="text-sm text-gray-600 mb-3">— ' + escapeHtml(q.context) + '</div>';
+                    html += '<div class="text-sm text-gray-600 mb-1">— ' + escapeHtml(q.context) + '</div>';
+                }
+
+                if (q.username) {
+                    html += '<div class="text-xs text-gray-500 mb-2">Added by ' + escapeHtml(q.username) + '</div>';
                 }
 
                 if (isExpanded) {
@@ -312,12 +344,60 @@
                 html += '<div class="text-xs text-gray-400 mt-3">' + new Date(q.timestamp).toLocaleDateString() + '</div>';
 
                 quoteCard.innerHTML = html;
+
+                if (isAdmin) {
+                    var deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.className = 'mt-3 inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 border border-red-200 rounded hover:bg-red-50';
+                    deleteBtn.onclick = function(event) {
+                        event.stopPropagation();
+                        deleteQuote(q.id);
+                    };
+                    quoteCard.appendChild(deleteBtn);
+                }
+
                 quotesList.appendChild(quoteCard);
             });
         }
 
         function toggleQuoteDetails(id) {
             selectedQuoteId = selectedQuoteId === id ? null : id;
+            renderQuotes();
+        }
+
+        function enterAdminMode() {
+            var input = window.prompt('Enter admin passphrase:');
+            if (input === null) {
+                return;
+            }
+            if (input === 'marcus1shiru2bigbadinkybones') {
+                isAdmin = true;
+                renderQuotes();
+            } else {
+                alert('Incorrect passphrase.');
+            }
+        }
+
+        async function deleteQuote(id) {
+            if (!window.confirm('Delete this quote? This cannot be undone.')) {
+                return;
+            }
+            try {
+                if (typeof window.storage.remove === 'function') {
+                    await window.storage.remove(id, true);
+                } else {
+                    const storageKey = id;
+                    const STORAGE_PREFIX = 'quote-db:';
+                    try {
+                        localStorage.removeItem(STORAGE_PREFIX + storageKey);
+                    } catch (e) {
+                        console.error('Failed to remove from localStorage', e);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to delete quote from storage', e);
+            }
+            quotes = quotes.filter(function(q) { return q.id !== id; });
             renderQuotes();
         }
 
