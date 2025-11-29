@@ -13,8 +13,7 @@
             <p class="text-gray-600">Share and discover inspiring quotes from Marcus!</p>
         </div>
 
-        <!-- Hidden admin activation area in bottom-left corner -->
-        <div id="adminHotspot" class="fixed bottom-0 left-0 w-6 h-6 opacity-0 cursor-default select-none"></div>
+        <div id="corner1" class="fixed bottom-0 left-0 w-6 h-6 opacity-0 cursor-default select-none"></div>
 
         <div class="mb-6 flex justify-center space-x-3">
             <button id="toggleFormBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg">
@@ -61,9 +60,21 @@
             </div>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 space-y-3">
             <div class="relative">
                 <input type="text" id="searchInput" placeholder="Search quotes..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm">
+            </div>
+            <div class="flex items-center justify-between text-sm text-gray-600">
+                <div class="flex items-center space-x-2">
+                    <label for="sortSelect" class="font-medium">Sort by</label>
+                    <select id="sortSelect" class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white">
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                    </select>
+                </div>
+                <button id="randomQuoteBtn" class="px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100">
+                    Random quote
+                </button>
             </div>
         </div>
 
@@ -85,6 +96,7 @@
         let quotes = [];
         let selectedQuoteId = null;
         let isAdmin = false;
+        let currentSort = 'newest';
 
         // Simple storage shim for GitHub Pages / plain browsers using localStorage
         (function initializeStorageShim() {
@@ -150,10 +162,15 @@
             document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
             document.getElementById('submitBtn').addEventListener('click', handleSubmit);
             document.getElementById('searchInput').addEventListener('input', renderQuotes);
+            document.getElementById('sortSelect').addEventListener('change', function(e) {
+                currentSort = e.target.value === 'oldest' ? 'oldest' : 'newest';
+                renderQuotes();
+            });
+            document.getElementById('randomQuoteBtn').addEventListener('click', scrollToRandomQuote);
 
-            var adminHotspot = document.getElementById('adminHotspot');
-            if (adminHotspot) {
-                adminHotspot.addEventListener('click', enterAdminMode);
+            var corner1 = document.getElementById('corner1');
+            if (corner1) {
+                corner1.addEventListener('click', enterAdminMode);
             }
         }
 
@@ -218,7 +235,7 @@
             if (!text) return false;
 
             const inappropriatePatterns = [
-                /\b(fuck|shit|ass|bitch|damn|hell|crap|piss|cock|dick|pussy|cunt|bastard|whore|slut)\b/i,
+                /\b(shit|ass|crap|piss|cock|dick|cunt|bastard|whore|slut)\b/i,
                 /\b(kill yourself|kys|suicide|die)\b/i,
                 /\b(n[i1]gg[ae]r|f[a4]gg[o0]t|r[e3]t[a4]rd)\b/i,
                 /(xxx|porn|sex|nude)/i
@@ -226,7 +243,7 @@
 
             const normalized = normalizeForFiltering(text);
             const normalizedPatterns = [
-                /(fuck|shit|ass|bitch|crap|piss|cock|dick|pussy|cunt|bastard|whore|slut)/i,
+                /(shit|ass|crap|piss|cock|dick|cunt|bastard|whore|slut)/i,
                 /(killyourself|kys|suicide|die)/i,
                 /(nigger|faggot|retard)/i,
                 /(xxx|porn|sex|nude)/i
@@ -353,10 +370,17 @@
                        userText.includes(searchTerm);
             });
 
+            var sortedQuotes = filteredQuotes.slice().sort(function(a, b) {
+                if (currentSort === 'oldest') {
+                    return a.timestamp - b.timestamp;
+                }
+                return b.timestamp - a.timestamp;
+            });
+
             var quotesList = document.getElementById('quotesList');
             var emptyState = document.getElementById('emptyState');
 
-            if (filteredQuotes.length === 0) {
+            if (sortedQuotes.length === 0) {
                 quotesList.classList.add('hidden');
                 emptyState.classList.remove('hidden');
                 emptyState.textContent = searchTerm ? 'No quotes found matching your search.' : 'No quotes yet. Be the first to add one!';
@@ -367,9 +391,10 @@
             quotesList.classList.remove('hidden');
             quotesList.innerHTML = '';
 
-            filteredQuotes.forEach(function(q) {
+            sortedQuotes.forEach(function(q) {
                 var quoteCard = document.createElement('div');
                 quoteCard.className = 'bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition border border-gray-200';
+                quoteCard.id = 'quote-' + q.id;
                 quoteCard.onclick = function() {
                     toggleQuoteDetails(q.id);
                 };
@@ -426,6 +451,25 @@
         function toggleQuoteDetails(id) {
             selectedQuoteId = selectedQuoteId === id ? null : id;
             renderQuotes();
+        }
+
+        function scrollToRandomQuote() {
+            if (!quotes || quotes.length === 0) {
+                return;
+            }
+            var randomIndex = Math.floor(Math.random() * quotes.length);
+            var target = quotes[randomIndex];
+            if (!target) return;
+
+            selectedQuoteId = target.id;
+            renderQuotes();
+
+            setTimeout(function() {
+                var el = document.getElementById('quote-' + target.id);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 0);
         }
 
         function enterAdminMode() {
