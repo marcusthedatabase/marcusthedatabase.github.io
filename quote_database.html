@@ -78,6 +78,44 @@
         let quotes = [];
         let selectedQuoteId = null;
 
+        // Simple storage shim for GitHub Pages / plain browsers using localStorage
+        (function initializeStorageShim() {
+            if (window.storage) return;
+
+            const STORAGE_PREFIX = 'quote-db:';
+
+            window.storage = {
+                async set(key, value) {
+                    try {
+                        localStorage.setItem(STORAGE_PREFIX + key, value);
+                    } catch (e) {
+                        console.error('Failed to write to localStorage', e);
+                        throw e;
+                    }
+                },
+                async get(key) {
+                    const fullKey = STORAGE_PREFIX + key;
+                    const value = localStorage.getItem(fullKey);
+                    if (value === null || value === undefined) {
+                        return null;
+                    }
+                    return { value: value };
+                },
+                async list(prefix) {
+                    const effectivePrefix = STORAGE_PREFIX + (prefix || '');
+                    const keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith(effectivePrefix)) {
+                            // Strip storage prefix before returning
+                            keys.push(k.substring(STORAGE_PREFIX.length));
+                        }
+                    }
+                    return { keys: keys };
+                }
+            };
+        })();
+
         document.addEventListener('DOMContentLoaded', function() {
             loadQuotes();
             setupEventListeners();
