@@ -301,6 +301,43 @@
             }
         }
 
+        async function loadQuotes() {
+            try {
+                var loadingEl = document.getElementById('loadingState');
+                if (loadingEl) {
+                    loadingEl.classList.remove('hidden');
+                }
+
+                var keys = await window.storage.list('quote:', true);
+
+                if (keys && keys.keys) {
+                    var loadedQuotes = [];
+                    for (var i = 0; i < keys.keys.length; i++) {
+                        var key = keys.keys[i];
+                        try {
+                            var result = await window.storage.get(key, true);
+                            if (result && result.value) {
+                                loadedQuotes.push(JSON.parse(result.value));
+                            }
+                        } catch (err) {
+                            console.log('Quote not found:', key);
+                        }
+                    }
+                    quotes = loadedQuotes.sort(function(a, b) {
+                        return b.timestamp - a.timestamp;
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading quotes:', err);
+            } finally {
+                var loadingElFinal = document.getElementById('loadingState');
+                if (loadingElFinal) {
+                    loadingElFinal.classList.add('hidden');
+                }
+                renderQuotes();
+            }
+        }
+
         function renderQuotes() {
             var searchTerm = document.getElementById('searchInput').value.toLowerCase();
             var filteredQuotes = quotes.filter(function(q) {
