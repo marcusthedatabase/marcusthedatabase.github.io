@@ -12,16 +12,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Global dark-mode effect: invert colors for a striking contrast */
-        html.dark {
-            filter: invert(1) hue-rotate(180deg);
-        }
-
-        /* Avoid inverting media twice if you add any later */
-        html.dark img,
-        html.dark video {
-            filter: invert(1) hue-rotate(180deg);
-        }
+        /* Dark mode is handled via Tailwind's .dark classes; no global invert filter to keep text readable */
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-rose-50 via-white to-indigo-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
